@@ -39,7 +39,9 @@ def iota(reset=False) -> int:
 
 OP_SET = iota()
 OP_ADD = iota()
+OP_ADDV = iota()
 OP_SUB = iota()
+OP_SUBV = iota()
 OP_PRINT = iota()
 OP_PRINT_CHAR = iota()
 
@@ -52,8 +54,16 @@ def add(regA: str, regB: str) -> None:
     return (OP_ADD, regA, regB)
 
 
+def addv(regA: str, regB: str) -> None:
+    return (OP_ADDV, regA, regB)
+
+
 def sub(regA: str, regB: str) -> None:
     return (OP_SUB, regA, regB)
+
+
+def subv(regA: str, regB: str) -> None:
+    return (OP_SUBV, regA, regB)
 
 
 def print_value(register: str) -> None:
@@ -71,8 +81,10 @@ def interpret(program_calls: list) -> None:
             registers[call[1]] = call[2]
         elif call[0] == OP_ADD:
             registers[call[1]] += registers[call[2]]
+        elif call[0] == OP_ADDV:
+            registers[call[1]] += call[2]
         elif call[0] == OP_SUB:
-            registers[call[1]] -= registers[call[2]]
+            registers[call[1]] -= call[2]
         elif call[0] == OP_PRINT:
             print(registers[call[1]], end='')
         elif call[0] == OP_PRINT_CHAR:
@@ -106,21 +118,39 @@ def read_program(file: str) -> None:
                 print(
                     f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
                 exit(1)
-            if not ops[2] in registers:
-                print(
-                    f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
-                exit(1)
-            program_calls.append(add(ops[1], ops[2]))
+            elif not ops[2] in registers:
+                if ops[2].isdigit():
+                    try:
+                        program_calls.append(addv(ops[1], int(ops[2])))
+                    except ValueError as err:
+                        print(
+                            f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: {err}")
+                        exit(1)
+                else:
+                    print(
+                        f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
+                    exit(1)
+            else:
+                program_calls.append(add(ops[1], ops[2]))
         elif ops[0] == 'SUB':
             if not ops[1] in registers:
                 print(
                     f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
                 exit(1)
-            if not ops[2] in registers:
-                print(
-                    f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
-                exit(1)
-            program_calls.append(sub(ops[1], ops[2]))
+            elif not ops[2] in registers:
+                if ops[2].isdigit():
+                    try:
+                        program_calls.append(subv(ops[1], int(ops[2])))
+                    except ValueError as err:
+                        print(
+                            f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: {err}")
+                        exit(1)
+                else:
+                    print(
+                        f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
+                    exit(1)
+            else:
+                program_calls.append(sub(ops[1], ops[2]))
         elif ops[0] == 'PRINTCHAR':
             if not ops[1] in registers:
                 print(
