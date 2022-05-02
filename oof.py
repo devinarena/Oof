@@ -86,15 +86,51 @@ def read_program(file: str) -> None:
     for line in lines:
         ops = [op[3] for op in line]
         if ops[0] == 'SET':
-            program_calls.append(set(ops[1], int(ops[2])))
+            if not ops[1] in registers:
+                print(
+                    f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
+                exit(1)
+            try:
+                program_calls.append(set(ops[1], int(ops[2])))
+            except ValueError as err:
+                print(f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: {err}")
+                exit(1)
         elif ops[0] == 'PRINT':
+            if not ops[1] in registers:
+                print(
+                    f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
+                exit(1)
             program_calls.append(print_value(ops[1]))
         elif ops[0] == 'ADD':
+            if not ops[1] in registers:
+                print(
+                    f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
+                exit(1)
+            if not ops[2] in registers:
+                print(
+                    f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
+                exit(1)
             program_calls.append(add(ops[1], ops[2]))
         elif ops[0] == 'SUB':
+            if not ops[1] in registers:
+                print(
+                    f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
+                exit(1)
+            if not ops[2] in registers:
+                print(
+                    f"{line[2][0]}:{line[2][1]}:{line[2][2]} :: Register {ops[2]} does not exist.")
+                exit(1)
             program_calls.append(sub(ops[1], ops[2]))
         elif ops[0] == 'PRINTCHAR':
+            if not ops[1] in registers:
+                print(
+                    f"{line[1][0]}:{line[1][1]}:{line[1][2]} :: Register {ops[1]} does not exist.")
+                exit(1)
             program_calls.append(print_char(ops[1]))
+        else:
+            print(
+                f"{line[0][0]}:{line[0][1]}:{line[0][2]} :: Unknown call given {ops[0]}.")
+            exit(1)
 
 
 program_calls = [
