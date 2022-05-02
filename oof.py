@@ -8,6 +8,8 @@
 
 import sys
 
+import lexer
+
 # Registers
 registers = {
     'A': 0,
@@ -36,12 +38,22 @@ def iota(reset=False) -> int:
 
 
 OP_SET = iota()
+OP_ADD = iota()
+OP_SUB = iota()
 OP_PRINT = iota()
 OP_PRINT_CHAR = iota()
 
 
 def set(register: str, value: int) -> None:
     return (OP_SET, register, value)
+
+
+def add(regA: str, regB: str) -> None:
+    return (OP_ADD, regA, regB)
+
+
+def sub(regA: str, regB: str) -> None:
+    return (OP_SUB, regA, regB)
 
 
 def print_value(register: str) -> None:
@@ -57,6 +69,10 @@ def interpret(program_calls: list) -> None:
     for call in program_calls:
         if call[0] == OP_SET:
             registers[call[1]] = call[2]
+        elif call[0] == OP_ADD:
+            registers[call[1]] += registers[call[2]]
+        elif call[0] == OP_SUB:
+            registers[call[1]] -= registers[call[2]]
         elif call[0] == OP_PRINT:
             print(registers[call[1]], end='')
         elif call[0] == OP_PRINT_CHAR:
@@ -66,17 +82,19 @@ def interpret(program_calls: list) -> None:
 
 
 def read_program(file: str) -> None:
-    with open(file, 'r') as file:
-        for line in file:
-            if len(line) <= 1 or line[0] == '#':
-                continue
-            ops = line.split()
-            if ops[0] == 'SET':
-                program_calls.append(set(ops[1], int(ops[2])))
-            if ops[0] == 'PRINT':
-                program_calls.append(print(ops[1]))
-            if ops[0] == 'PRINTCHAR':
-                program_calls.append(print_char(ops[1]))
+    lines = lexer.lex_file(file)
+    for line in lines:
+        ops = [op[3] for op in line]
+        if ops[0] == 'SET':
+            program_calls.append(set(ops[1], int(ops[2])))
+        elif ops[0] == 'PRINT':
+            program_calls.append(print_value(ops[1]))
+        elif ops[0] == 'ADD':
+            program_calls.append(add(ops[1], ops[2]))
+        elif ops[0] == 'SUB':
+            program_calls.append(sub(ops[1], ops[2]))
+        elif ops[0] == 'PRINTCHAR':
+            program_calls.append(print_char(ops[1]))
 
 
 program_calls = [
