@@ -1,0 +1,5 @@
+set x = 52
+
+if x == 10 {
+    OUTPUT "x is 10"
+}

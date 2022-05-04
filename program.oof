@@ -1,5 +1,2 @@
-# COMMENT
-SET A 97
-ADD A 10
-
-PRINT A
+// The first real oof program
+output "Hello, world!";
