@@ -9,22 +9,59 @@
 import sys
 
 import lexer
+import parser
+import interpreter
+
+import token
+import tokens
+
+import trees.astprinter
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
 
+ERROR = False
+RUNTIME_ERROR = False
 
 def runFile(file: str) -> None:
     with open(file, "r") as source:
         run(source.read())
+    if ERROR:
+        exit(65)
+    if RUNTIME_ERROR:
+        exit(70)
 
 def run(source: str) -> None:
     lxr = lexer.Lexer(source)
-    for token in lxr.lex():
-        print(str(token))
+    tokens = lxr.lex()
+    psr = parser.Parser(tokens)
+    stmnts = psr.parse()
+    intr = interpreter.Interpreter()
+
+    if ERROR:
+        return
+    
+    intr.interpret(stmnts)
 
 def error(msg: str, line: int, col: int) -> None:
+    global ERROR
+    ERROR = True
     print(f"Error:{line}:{col}:: {msg}")
+    exit(1)
+
+def error(token: token.Token, msg: str) -> None:
+    global ERROR
+    ERROR = True
+    if token.type == tokens.EOF:
+        print(f"Error:EOF:: {msg}")
+    else:
+        print(f"Error:{token.line}:{token.col}:: {msg}")
+    exit(1)
+
+def runtime_error(token: token.Token, msg: str) -> None:
+    global RUNTIME_ERROR
+    RUNTIME_ERROR = True
+    print(f"Runtime Error:{token.line}:{token.col}:: {msg}")
     exit(1)
 
 if __name__ == "__main__":

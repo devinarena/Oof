@@ -1,9 +1,9 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import token
+# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# import token
 
-class AST:
+class Expr:
    class Visitor:
       def visit_binary(self, binary: object):
           pass
@@ -16,7 +16,7 @@ class AST:
    def accept(self, visitor: object) -> object:
        pass
 
-class Binary(AST):
+class Binary(Expr):
     def __init__(self, left, operator, right):
         self.left = left
         self.operator = operator
@@ -25,21 +25,21 @@ class Binary(AST):
     def accept(self, visitor: object) -> object:
         return visitor.visit_binary(self)
 
-class Grouping(AST):
+class Grouping(Expr):
     def __init__(self, expression):
         self.expression = expression
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_grouping(self)
 
-class Literal(AST):
+class Literal(Expr):
     def __init__(self, value):
         self.value = value
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_literal(self)
 
-class Unary(AST):
+class Unary(Expr):
     def __init__(self, operator, right):
         self.operator = operator
         self.right = right

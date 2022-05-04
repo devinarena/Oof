@@ -2,30 +2,31 @@
 
 import sys
 import os
-import expr
+import trees.expr
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import token
 import tokens
 
-class ASTPrinter(expr.AST.Visitor):
-    def print(self, expr: expr.AST) -> None:
+class ASTPrinter(trees.expr.Expr.Visitor):
+
+    def print(self, expr: trees.expr.Expr) -> trees.expr.Expr:
         return expr.accept(self)
 
-    def visit_binary(self, binary: expr.Binary) -> None:
+    def visit_binary(self, binary: trees.expr.Binary) -> str:
         return self.parenthesize(binary.operator.lexeme, binary.left, binary.right)
 
-    def visit_grouping(self, grouping: expr.Grouping) -> None:
+    def visit_grouping(self, grouping: trees.expr.Grouping) -> str:
         return self.parenthesize("group", grouping.expression)
     
-    def visit_literal(self, literal: expr.Literal) -> None:
+    def visit_literal(self, literal: trees.expr.Literal) -> str:
         if literal.value == "null":
             return "null"
         return str(literal.value)
     
-    def visit_unary(self, unary: expr.Unary) -> None:
+    def visit_unary(self, unary: trees.expr.Unary) -> str:
         return self.parenthesize(unary.operator.lexeme, unary.right)
     
-    def parenthesize(self, name: str, *expr: expr.AST) -> None:
+    def parenthesize(self, name: str, *expr: trees.expr.Expr) -> str:
         s = f"({name}"
 
         for ex in expr:
@@ -34,10 +35,3 @@ class ASTPrinter(expr.AST.Visitor):
         s += ")"
         
         return s
-
-if __name__ == "__main__":
-    print(token)
-    ex = expr.Binary(expr.Unary(token.Token(tokens.MINUS, "-", None, 1, 0), expr.Literal(123)), \
-        token.Token(tokens.STAR, "*", None, 1, 1), \
-        expr.Grouping(expr.Literal(45.68)))
-    print(ASTPrinter().print(ex))

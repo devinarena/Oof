@@ -9,7 +9,7 @@ def define_ast(output_dir: str, base_name: str, types: list) -> None:
         f.write("sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n")
         f.write("import token\n")
         f.write("\n")
-        f.write("class AST:\n")
+        f.write("class Expr:\n")
         define_visitor(f, base_name, types)
         f.write("   def accept(self, visitor: object) -> object:\n")
         f.write("       pass\n")
@@ -22,7 +22,7 @@ def define_ast(output_dir: str, base_name: str, types: list) -> None:
         
 
 def define_type(f: object, name: str, fields: str) -> None:
-    f.write(f"class {name}(AST):\n")
+    f.write(f"class {name}(Expr):\n")
     f.write(f"    def __init__(self, {fields}):\n")
     for field in fields.split(","):
         f.write(f"        self.{field.strip()} = {field.strip()}\n")
@@ -47,9 +47,7 @@ if __name__ == "__main__":
     if not os.path.exists(sys.argv[1]):
         os.mkdir(sys.argv[1])
     
-    define_ast(sys.argv[1], "expr", [
-        "Binary       : left, operator, right",
-        "Grouping     : expression",
-        "Literal      : value",
-        "Unary        : operator, right",
+    define_ast(sys.argv[1], "statement", [
+        "Expression   : expression",
+        "Output       : output",
     ])
