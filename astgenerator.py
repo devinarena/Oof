@@ -9,7 +9,7 @@ def define_ast(output_dir: str, base_name: str, types: list) -> None:
         f.write("sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n")
         f.write("import token\n")
         f.write("\n")
-        f.write("class Expr:\n")
+        f.write(f"class {base_name[0].upper() + base_name[1:]}:\n")
         define_visitor(f, base_name, types)
         f.write("   def accept(self, visitor: object) -> object:\n")
         f.write("       pass\n")
@@ -18,11 +18,11 @@ def define_ast(output_dir: str, base_name: str, types: list) -> None:
         for type in types:
             name = type.split(":")[0].strip()
             fields = type.split(":")[1].strip()
-            define_type(f, name, fields)
+            define_type(f, name, base_name, fields)
         
 
-def define_type(f: object, name: str, fields: str) -> None:
-    f.write(f"class {name}(Expr):\n")
+def define_type(f: object, name: str, base_name: str, fields: str) -> None:
+    f.write(f"class {name}({base_name[0].upper() + base_name[1:]}):\n")
     f.write(f"    def __init__(self, {fields}):\n")
     for field in fields.split(","):
         f.write(f"        self.{field.strip()} = {field.strip()}\n")
@@ -47,7 +47,17 @@ if __name__ == "__main__":
     if not os.path.exists(sys.argv[1]):
         os.mkdir(sys.argv[1])
     
+    define_ast(sys.argv[1], "expr", [
+        "Assign       : name, value",
+        "Binary       : left, operator, right",
+        "Grouping     : expression",
+        "Literal      : value",
+        "Unary        : operator, right",
+        "Variable     : name",
+    ]) 
+    
     define_ast(sys.argv[1], "statement", [
         "Expression   : expression",
         "Output       : output",
+        "Set          : name, initializer",
     ])

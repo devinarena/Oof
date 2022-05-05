@@ -8,6 +8,7 @@
 
 import trees.expr
 import trees.statement
+import errors
 import token
 import tokens
 import oof
@@ -22,28 +23,60 @@ class Parser:
         statements = []
 
         while not self.at_end():
-            statements.append(self.statement())
+            statements.append(self.declaration())
         
         return statements
     
-    def statement(self) -> trees.statement.Expr:
+    def declaration(self) -> trees.statement.Statement:
+        try:
+            if self.match([tokens.SET]):
+                return self.set_declaration()
+            
+            return self.statement()
+        except errors.ParseError as e:
+            self.synchronize()
+            return None
+        
+    def set_declaration(self) -> trees.statement.Statement:
+        name = self.consume([tokens.IDENTIFIER], "Expect variable name.")
+        initializer = None
+        if self.match([tokens.EQUAL]):
+            initializer = self.expression()
+        self.consume([tokens.SEMI_COLON], "Expect ';' after variable declaration.")
+        return trees.statement.Set(name, initializer)
+    
+    def statement(self) -> trees.statement.Statement:
         if self.match([tokens.OUTPUT]):
             return self.output_statement()
         
         return self.expression_statement()
     
-    def output_statement(self) -> trees.statement.Expr:
+    def output_statement(self) -> trees.statement.Statement:
         value = self.expression()
         self.consume([tokens.SEMI_COLON], "Expect ';' after value.")
         return trees.statement.Output(value)
     
-    def expression_statement(self) -> trees.statement.Expr:
+    def expression_statement(self) -> trees.statement.Statement:
         expr = self.expression()
         self.consume([tokens.SEMI_COLON], "Expect ';' after expression.")
-        return trees.statement.Expr(expr)
+        return trees.statement.Expression(expr)
 
     def expression(self) -> trees.expr.Expr:
-        return self.equality()
+        return self.assignment()
+    
+    def assignment(self) -> trees.expr.Expr:
+        expr = self.equality()
+
+        if self.match([tokens.EQUAL]):
+            operator = self.previous()
+            value = self.assignment()
+
+            if type(expr) is trees.expr.Variable:
+                return trees.expr.Assign(expr.name, value)
+            
+            raise self.error(operator, "Invalid assignment target.")
+
+        return expr
     
     def equality(self) -> trees.expr.Expr:
         expr = self.comparison()
@@ -101,6 +134,8 @@ class Parser:
             return trees.expr.Literal(None)
         if self.match([tokens.NUMBER, tokens.STRING]):
             return trees.expr.Literal(self.previous().literal)
+        elif self.match([tokens.IDENTIFIER]):
+            return trees.expr.Variable(self.previous())
         if self.match([tokens.LEFT_PAREN]):
             expr = self.expression()
             self.consume([tokens.RIGHT_PAREN], "Expect ')' after expression.")
@@ -164,11 +199,4 @@ class Parser:
     
     def error(self, token: token.Token, message: str) -> None:
         oof.error(token, message)
-        return ParseException(token, message)
-
-class ParseException(Exception):
-    
-    def __init__(self, token: token.Token, message: str) -> None:
-        super().__init__(message)
-        self.message = message
-        self.token = token
+        return errors.ParseError(token, message)

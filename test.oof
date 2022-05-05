@@ -1,1 +1,5 @@
-output ("Hello" + " world!");
+set x = "Chase";
+set y = "is";
+
+// cuz he kinda dum tho
+output x + " " + y + " dumb";

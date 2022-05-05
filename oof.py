@@ -43,7 +43,7 @@ def run(source: str) -> None:
     
     intr.interpret(stmnts)
 
-def error(msg: str, line: int, col: int) -> None:
+def lex_error(msg: str, line: int, col: int) -> None:
     global ERROR
     ERROR = True
     print(f"Error:{line}:{col}:: {msg}")

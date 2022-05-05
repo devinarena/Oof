@@ -89,7 +89,7 @@ class Lexer:
         elif self.valid_identifier(c):
             self.lex_identifier()
         else:
-            oof.error("Unknown character", self.line, self.col)
+            oof.lex_error("Unknown character", self.line, self.col)
     
     def lex_string(self) -> None:
         while not self.at_end() and self.peek() != '"':
@@ -99,7 +99,7 @@ class Lexer:
             self.next()
         
         if self.at_end():
-            oof.error("String is never terminated", self.line, self.col)
+            oof.lex_error("String is never terminated", self.line, self.col)
         
         self.next()
         literal = self.source[self.start + 1:self.current - 1]

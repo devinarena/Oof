@@ -10,19 +10,21 @@ import sys
 import os
 
 import oof
+import environment
 import trees.expr
 import trees.statement
+import errors
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tokens
 import token
 
-class Interpreter(trees.expr.Expr.Visitor, trees.statement.Expr.Visitor):
+class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
     def interpret(self, statements: list) -> object:
         try:
             for statement in statements:
                 self.execute(statement)
-        except InterpreterError as e:
+        except errors.InterpreterError as e:
             oof.error(e.token, e.message)
     
     def visit_literal(self, literal: trees.expr.Literal) -> object:
@@ -86,10 +88,25 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Expr.Visitor):
     def visit_expression(self, expression: trees.expr.Expr) -> object:
         return self.evaluate(expression.expression)
 
-    def visit_output(self, expression: trees.expr.Expr) -> object:
-        val = self.evaluate(expression.output)
+    def visit_output(self, output: trees.expr.Expr) -> object:
+        val = self.evaluate(output.output)
         print(self.stringify(val))
         return None
+    
+    def visit_set(self, set: trees.statement.Set) -> object:
+        value = None
+        if set.initializer != None:
+            value = self.evaluate(set.initializer)
+        environment.define(set.name.lexeme, value)
+        return None
+    
+    def visit_variable(self, variable: trees.expr.Variable) -> object:
+        return environment.get(variable.name)
+    
+    def visit_assign(self, assign: trees.expr.Assign) -> object:
+        value = self.evaluate(assign.value)
+        environment.assign(assign.name, value)
+        return value
     
     def is_truthy(self, value: object) -> bool:
         if value == None:
@@ -112,13 +129,13 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Expr.Visitor):
     
     def check_number_op(self, operator: token.Token, operand: object) -> None:
         if type(operand) is not float:
-            raise InterpreterError(operator, "Operand must be a number")
+            raise errors.InterpreterError(operator, "Operand must be a number")
         
     def check_number_ops(self, operator: token.Token, left: object, right: object) -> None:
         if type(left) is not float or type(right) is not float:
-            raise InterpreterError(operator, "Operands must be a number")
+            raise errors.InterpreterError(operator, "Operands must be a number")
         
-    def execute(self, statement: trees.statement.Expr) -> None:
+    def execute(self, statement: trees.statement.Statement) -> None:
         statement.accept(self)
         
     def evaluate(self, expr: trees.expr.Expr) -> object:
@@ -138,11 +155,4 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Expr.Visitor):
             return str(obj).lower()
         
         return str(obj)
-
-class InterpreterError(Exception):
-    
-    def __init__(self, token: token.Token, message: str):
-        super().__init__(message)
-        self.message = message
-        self.token = token
         
