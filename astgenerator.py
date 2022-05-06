@@ -52,6 +52,7 @@ if __name__ == "__main__":
         "Binary       : left, operator, right",
         "Grouping     : expression",
         "Literal      : value",
+        "Logical      : left, operator, right",
         "Unary        : operator, right",
         "Variable     : name",
     ]) 
@@ -59,6 +60,8 @@ if __name__ == "__main__":
     define_ast(sys.argv[1], "statement", [
         "Block        : statements",
         "Expression   : expression",
+        "If_          : condition, then_branch, else_branch",
         "Output       : output",
         "Set          : name, initializer",
+        "While_        : condition, body",
     ])

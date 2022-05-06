@@ -46,12 +46,78 @@ class Parser:
         return trees.statement.Set(name, initializer)
     
     def statement(self) -> trees.statement.Statement:
+        if self.match([tokens.FOR]):
+            return self.for_statement()
+        if self.match([tokens.IF]):
+            return self.if_statement()
         if self.match([tokens.OUTPUT]):
             return self.output_statement()
+        if self.match([tokens.WHILE]):
+            return self.while_statement()
         if self.match([tokens.LEFT_BRACE]):
             return trees.statement.Block(self.block())
         
         return self.expression_statement()
+    
+    def for_statement(self) -> trees.statement.Statement:
+        self.consume([tokens.LEFT_PAREN], "Expect '(' after 'for'.")
+
+        initializer = None
+        if self.match([tokens.SEMI_COLON]):
+            initializer = None
+        elif self.match([tokens.SET]):
+            initializer = self.set_declaration()
+        else:
+            initializer = self.expression_statement()
+
+        condition = None
+        if not self.check([tokens.SEMI_COLON]):
+            condition = self.expression()
+        self.consume([tokens.SEMI_COLON], "Expect ';' after condition.")
+
+        increment = None
+        if not self.check([tokens.RIGHT_PAREN]):
+            increment = self.expression()
+        self.consume([tokens.RIGHT_PAREN], "Expect ')' after increment.")
+
+        body = self.statement()
+
+        if increment:
+            body = trees.statement.Block([body, trees.statement.Expression(increment)])
+        
+        if not condition:
+            condition = False
+        body = trees.statement.While_(condition, body)
+
+        if initializer:
+            body = trees.statement.Block([initializer, body])
+
+        return body
+    
+    def if_statement(self) -> trees.statement.Statement:
+        self.consume([tokens.LEFT_PAREN], "Expect '(' after 'if'.")
+        condition = self.expression()
+        self.consume([tokens.RIGHT_PAREN], "Expect ')' after condition.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match([tokens.ELSE]):
+            else_branch = self.statement()
+
+        return trees.statement.If_(condition, then_branch, else_branch)
+    
+    def output_statement(self) -> trees.statement.Statement:
+        value = self.expression()
+        self.consume([tokens.SEMI_COLON], "Expect ';' after value.")
+        return trees.statement.Output(value)
+    
+    def while_statement(self) -> trees.statement.Statement:
+        self.consume([tokens.LEFT_PAREN], "Expect '(' after 'while'.")
+        condition = self.expression()
+        self.consume([tokens.RIGHT_PAREN], "Expect ')' after condition.")
+        body = self.statement()
+
+        return trees.statement.While_(condition, body)
     
     def block(self) -> list:
         statements = []
@@ -62,11 +128,6 @@ class Parser:
         self.consume([tokens.RIGHT_BRACE], "Expect '}' after block.")
         return statements
     
-    def output_statement(self) -> trees.statement.Statement:
-        value = self.expression()
-        self.consume([tokens.SEMI_COLON], "Expect ';' after value.")
-        return trees.statement.Output(value)
-    
     def expression_statement(self) -> trees.statement.Statement:
         expr = self.expression()
         self.consume([tokens.SEMI_COLON], "Expect ';' after expression.")
@@ -76,7 +137,7 @@ class Parser:
         return self.assignment()
     
     def assignment(self) -> trees.expr.Expr:
-        expr = self.equality()
+        expr = self.or_exp()
 
         if self.match([tokens.EQUAL]):
             operator = self.previous()
@@ -87,6 +148,26 @@ class Parser:
             
             raise self.error(operator, "Invalid assignment target.")
 
+        return expr
+    
+    def or_exp(self) -> trees.expr.Expr:
+        expr = self.and_exp()
+
+        while self.match([tokens.OR]):
+            operator = self.previous()
+            right = self.and_exp()
+            expr = trees.expr.Logical(expr, operator, right)
+        
+        return expr
+    
+    def and_exp(self) -> trees.expr.Expr:
+        expr = self.equality()
+
+        while self.match([tokens.AND]):
+            operator = self.previous()
+            right = self.equality()
+            expr = trees.expr.Logical(expr, operator, right)
+        
         return expr
     
     def equality(self) -> trees.expr.Expr:

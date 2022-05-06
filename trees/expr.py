@@ -13,6 +13,8 @@ class Expr:
           pass
       def visit_literal(self, literal: object):
           pass
+      def visit_logical(self, logical: object):
+          pass
       def visit_unary(self, unary: object):
           pass
       def visit_variable(self, variable: object):
@@ -50,6 +52,15 @@ class Literal(Expr):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_literal(self)
+
+class Logical(Expr):
+    def __init__(self, left, operator, right):
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_logical(self)
 
 class Unary(Expr):
     def __init__(self, operator, right):

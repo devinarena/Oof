@@ -88,11 +88,23 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
             return self.is_equal(left, right)
 
         return None
+    
+    def visit_logical(self, logical: object) -> object:
+        left = self.evaluate(logical.left)
+
+        if logical.operator.type == tokens.OR:
+            if self.is_truthy(left):
+                return left
+        if logical.operator.type == tokens.AND:
+            if not self.is_truthy(left):
+                return left
+        
+        return self.evaluate(logical.right)
 
     def visit_block(self, block: trees.statement.Block) -> object:
         self.execute_block(block.statements, environment.Environment(self.env))
     
-    def visit_expression(self, expression: trees.expr.Expr) -> object:
+    def visit_expression(self, expression: trees.statement.Expression) -> object:
         return self.evaluate(expression.expression)
 
     def visit_output(self, output: trees.expr.Expr) -> object:
@@ -114,6 +126,19 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         value = self.evaluate(assign.value)
         self.env.assign(assign.name, value)
         return value
+    
+    def visit_if_(self, iff: trees.statement.If_) -> None:
+        if self.is_truthy(self.evaluate(iff.condition)):
+            self.execute(iff.then_branch)
+        elif iff.else_branch:
+            self.execute(iff.else_branch)
+        return None
+    
+    def visit_while_(self, while_: trees.statement.While_) -> None:
+        while self.is_truthy(self.evaluate(while_.condition)):
+            self.execute(while_.body)
+        
+        return None
     
     def execute_block(self, statements: list, env: environment.Environment) -> None:
         previous = self.env

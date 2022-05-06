@@ -9,9 +9,13 @@ class Statement:
           pass
       def visit_expression(self, expression: object):
           pass
+      def visit_if_(self, if_: object):
+          pass
       def visit_output(self, output: object):
           pass
       def visit_set(self, set: object):
+          pass
+      def visit_while_(self, while_: object):
           pass
    def accept(self, visitor: object) -> object:
        pass
@@ -30,6 +34,15 @@ class Expression(Statement):
     def accept(self, visitor: object) -> object:
         return visitor.visit_expression(self)
 
+class If_(Statement):
+    def __init__(self, condition, then_branch, else_branch):
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_if_(self)
+
 class Output(Statement):
     def __init__(self, output):
         self.output = output
@@ -44,4 +57,12 @@ class Set(Statement):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_set(self)
+
+class While_(Statement):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_while_(self)
 

@@ -1,8 +1,9 @@
-set x;
+set x = 0;
+set y = 1;
 
-{
-    set y = 2;
-    output x;
+for (set i = 0; i < 20; i = i + 1) {
+    set n = x + y;
+    x = y;
+    y = n;
+    output n;
 }
-
-output x;

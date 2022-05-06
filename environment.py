@@ -17,6 +17,10 @@ class Environment:
             self.values[name.lexeme] = value
             return
         
+        if self.enclosing:
+            self.enclosing.assign(name, value)
+            return
+        
         raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
 
     def get(self, name: token.Token) -> None:
