@@ -2,22 +2,28 @@
 import token
 import errors
 
-values = {
+class Environment:
+    def __init__(self, enclosing=None) -> None:
+        self.values = {
 
-}
+        }
+        self.enclosing = enclosing
 
-def define(name: str, value: object) -> None:
-    values[name] = value
+    def define(self, name: str, value: object) -> None:
+        self.values[name] = value
 
-def assign(name: str, value: object) -> None:
-    if name.lexeme in values:
-        values[name.lexeme] = value
-        return
-    
-    raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
+    def assign(self, name: str, value: object) -> None:
+        if name.lexeme in self.values:
+            self.values[name.lexeme] = value
+            return
+        
+        raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
 
-def get(name: token.Token) -> None:
-    if values[name.lexeme]:
-        return values[name.lexeme]
-    
-    raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
+    def get(self, name: token.Token) -> None:
+        if name.lexeme in self.values:
+            return self.values[name.lexeme]
+        
+        if self.enclosing:
+            return self.enclosing.get(name)
+        
+        raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")

@@ -1,5 +1,8 @@
-set x = "Chase";
-set y = "is";
+set x;
 
-// cuz he kinda dum tho
-output x + " " + y + " dumb";
+{
+    set y = 2;
+    output x;
+}
+
+output x;

@@ -48,8 +48,19 @@ class Parser:
     def statement(self) -> trees.statement.Statement:
         if self.match([tokens.OUTPUT]):
             return self.output_statement()
+        if self.match([tokens.LEFT_BRACE]):
+            return trees.statement.Block(self.block())
         
         return self.expression_statement()
+    
+    def block(self) -> list:
+        statements = []
+
+        while not self.check([tokens.RIGHT_BRACE]) and not self.at_end():
+            statements.append(self.declaration())
+        
+        self.consume([tokens.RIGHT_BRACE], "Expect '}' after block.")
+        return statements
     
     def output_statement(self) -> trees.statement.Statement:
         value = self.expression()

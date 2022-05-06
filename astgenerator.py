@@ -57,6 +57,7 @@ if __name__ == "__main__":
     ]) 
     
     define_ast(sys.argv[1], "statement", [
+        "Block        : statements",
         "Expression   : expression",
         "Output       : output",
         "Set          : name, initializer",

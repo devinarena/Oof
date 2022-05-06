@@ -5,6 +5,8 @@ import token
 
 class Statement:
    class Visitor:
+      def visit_block(self, block: object):
+          pass
       def visit_expression(self, expression: object):
           pass
       def visit_output(self, output: object):
@@ -13,6 +15,13 @@ class Statement:
           pass
    def accept(self, visitor: object) -> object:
        pass
+
+class Block(Statement):
+    def __init__(self, statements):
+        self.statements = statements
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_block(self)
 
 class Expression(Statement):
     def __init__(self, expression):

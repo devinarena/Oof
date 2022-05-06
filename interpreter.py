@@ -20,6 +20,10 @@ import token
 
 class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.env = environment.Environment()
+
     def interpret(self, statements: list) -> object:
         try:
             for statement in statements:
@@ -84,6 +88,9 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
             return self.is_equal(left, right)
 
         return None
+
+    def visit_block(self, block: trees.statement.Block) -> object:
+        self.execute_block(block.statements, environment.Environment(self.env))
     
     def visit_expression(self, expression: trees.expr.Expr) -> object:
         return self.evaluate(expression.expression)
@@ -97,16 +104,27 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         value = None
         if set.initializer != None:
             value = self.evaluate(set.initializer)
-        environment.define(set.name.lexeme, value)
+        self.env.define(set.name.lexeme, value)
         return None
     
     def visit_variable(self, variable: trees.expr.Variable) -> object:
-        return environment.get(variable.name)
+        return self.env.get(variable.name)
     
     def visit_assign(self, assign: trees.expr.Assign) -> object:
         value = self.evaluate(assign.value)
-        environment.assign(assign.name, value)
+        self.env.assign(assign.name, value)
         return value
+    
+    def execute_block(self, statements: list, env: environment.Environment) -> None:
+        previous = self.env
+
+        try:
+            self.env = env
+
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.env = previous
     
     def is_truthy(self, value: object) -> bool:
         if value == None:
