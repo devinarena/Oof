@@ -35,14 +35,6 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
                 return "<clock fn>"
         self.globals.define("clock", Clock())
 
-        class SaySoffiaIsHot(callable.Callable):
-            def call(self, interpreter: Interpreter, args: list) -> object:
-                print("Soffia is hot!")
-                return None
-            def __str__(self) -> str:
-                return "<soffia is hot fn>"
-        self.globals.define("soffia is hot", SaySoffiaIsHot())
-
     def interpret(self, statements: list) -> object:
         try:
             for statement in statements:
@@ -152,7 +144,8 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         return None
     
     def visit_function(self, func: trees.statement.Function) -> object:
-        self.env.define(func.name.lexeme, function.Function_(func))
+        func_ = function.Function_(func, self.env)
+        self.env.define(func.name.lexeme, func_)
         return None
     
     def visit_variable(self, variable: trees.expr.Variable) -> object:
@@ -163,12 +156,19 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         self.env.assign(assign.name, value)
         return value
     
-    def visit_if_(self, iff: trees.statement.If_) -> None:
+    def visit_if_(self, iff: trees.statement.If_) -> object:
         if self.is_truthy(self.evaluate(iff.condition)):
             self.execute(iff.then_branch)
         elif iff.else_branch:
             self.execute(iff.else_branch)
         return None
+    
+    def visit_return_(self, return_: object) -> object:
+        value = None
+
+        if return_.value != None:
+            value = self.evaluate(return_.value)
+        raise errors.Return(value)
     
     def visit_while_(self, while_: trees.statement.While_) -> None:
         while self.is_truthy(self.evaluate(while_.condition)):

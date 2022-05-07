@@ -1,6 +1,6 @@
 
 fun test(name) {
-    output "Hello " + name + "!";
+    ret name + " is cool.";
 }
 
-test("Devin");
+output test("Devin");

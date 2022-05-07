@@ -78,7 +78,7 @@ keywords = {
     "null": NULL,
     "or": OR,
     "output": OUTPUT,
-    "return": RETURN,
+    "ret": RETURN,
     "super": SUPER,
     "this": THIS,
     "true": TRUE,

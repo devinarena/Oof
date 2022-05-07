@@ -14,3 +14,9 @@ class ParseError(Exception):
         super().__init__(message)
         self.message = message
         self.token = token
+    
+class Return(Exception):
+
+    def __init__(self, value: object) -> None:
+        super().__init__(value)
+        self.value = value

@@ -15,6 +15,8 @@ class Statement:
           pass
       def visit_output(self, output: object):
           pass
+      def visit_return_(self, return_: object):
+          pass
       def visit_set(self, set: object):
           pass
       def visit_while_(self, while_: object):
@@ -60,6 +62,14 @@ class Output(Statement):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_output(self)
+
+class Return_(Statement):
+    def __init__(self, keyword, value):
+        self.keyword = keyword
+        self.value = value
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_return_(self)
 
 class Set(Statement):
     def __init__(self, name, initializer):

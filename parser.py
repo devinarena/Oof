@@ -77,6 +77,8 @@ class Parser:
             return self.if_statement()
         if self.match([tokens.OUTPUT]):
             return self.output_statement()
+        if self.match([tokens.RETURN]):
+            return self.return_statement()
         if self.match([tokens.WHILE]):
             return self.while_statement()
         if self.match([tokens.LEFT_BRACE]):
@@ -135,6 +137,16 @@ class Parser:
         value = self.expression()
         self.consume([tokens.SEMI_COLON], "Expect ';' after value.")
         return trees.statement.Output(value)
+    
+    def return_statement(self) -> trees.statement.Statement:
+        keyword = self.previous()
+        value = None
+
+        if not self.check([tokens.SEMI_COLON]):
+            value = self.expression()
+        
+        self.consume([tokens.SEMI_COLON], "Expect ';' after return value.")
+        return trees.statement.Return_(keyword, value)
     
     def while_statement(self) -> trees.statement.Statement:
         self.consume([tokens.LEFT_PAREN], "Expect '(' after 'while'.")

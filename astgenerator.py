@@ -64,6 +64,7 @@ if __name__ == "__main__":
         "Function     : name, params, body",
         "If_          : condition, then_branch, else_branch",
         "Output       : output",
+        "Return_      : keyword, value",
         "Set          : name, initializer",
-        "While_        : condition, body",
+        "While_       : condition, body",
     ])
