@@ -9,6 +9,8 @@ class Statement:
           pass
       def visit_expression(self, expression: object):
           pass
+      def visit_function(self, function: object):
+          pass
       def visit_if_(self, if_: object):
           pass
       def visit_output(self, output: object):
@@ -33,6 +35,15 @@ class Expression(Statement):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_expression(self)
+
+class Function(Statement):
+    def __init__(self, name, params, body):
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_function(self)
 
 class If_(Statement):
     def __init__(self, condition, then_branch, else_branch):

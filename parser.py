@@ -29,6 +29,8 @@ class Parser:
     
     def declaration(self) -> trees.statement.Statement:
         try:
+            if self.match([tokens.FUN]):
+                return self.function("function")
             if self.match([tokens.SET]):
                 return self.set_declaration()
             
@@ -36,6 +38,29 @@ class Parser:
         except errors.ParseError as e:
             self.synchronize()
             return None
+        
+    def function(self, kind) -> trees.statement.Statement:
+        name = self.consume([tokens.IDENTIFIER], f"Expect {kind} name.")
+
+        self.consume([tokens.LEFT_PAREN], f"Expect '(' after {kind} name.")
+        parameters = []
+        if not self.check([tokens.RIGHT_PAREN]):
+            if len(parameters) >= 255:
+                self.error(self.peek(), "Cannot have more than 255 parameters.")
+            parameters.append(self.consume([tokens.IDENTIFIER], "Expect parameter name."))
+
+            while self.match([tokens.COMMA]):
+                if len(parameters) >= 255:
+                    self.error(self.peek(), "Cannot have more than 255 parameters.")
+
+                parameters.append(self.consume([tokens.IDENTIFIER], "Expect parameter name."))
+        
+        self.consume([tokens.RIGHT_PAREN], "Expect ')' after parameters.")
+
+        self.consume([tokens.LEFT_BRACE], "Expect '{' before function body.")
+        body = self.block()
+
+        return trees.statement.Function(name, parameters, body)
         
     def set_declaration(self) -> trees.statement.Statement:
         name = self.consume([tokens.IDENTIFIER], "Expect variable name.")
@@ -124,7 +149,7 @@ class Parser:
 
         while not self.check([tokens.RIGHT_BRACE]) and not self.at_end():
             statements.append(self.declaration())
-        
+
         self.consume([tokens.RIGHT_BRACE], "Expect '}' after block.")
         return statements
     
@@ -215,8 +240,34 @@ class Parser:
             operator = self.previous()
             right = self.unary()
             return trees.expr.Unary(operator, right)
-        return self.primary()
+        return self.call()
     
+    def call(self) -> trees.expr.Expr:
+        expr = self.primary()
+
+        while True:
+            if self.match([tokens.LEFT_PAREN]):
+                expr = self.finish_call(expr)
+            else:
+                break
+        
+        return expr
+    
+    def finish_call(self, callee: trees.expr.Expr) -> trees.expr.Expr:
+        arguments = []
+
+        if not self.check([tokens.RIGHT_PAREN]):
+            arguments.append(self.expression())
+
+            while self.match([tokens.COMMA]):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Cannot have more than 255 arguments.")
+                arguments.append(self.expression())
+        
+        paren = self.consume([tokens.RIGHT_PAREN], "Expect ')' after arguments.")
+
+        return trees.expr.Call(callee, paren, arguments)
+
     def primary(self) -> trees.expr.Expr:
         if self.match([tokens.FALSE]):
             return trees.expr.Literal(False)

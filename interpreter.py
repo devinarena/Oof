@@ -8,12 +8,15 @@
 
 import sys
 import os
+import time
 
 import oof
 import environment
 import trees.expr
 import trees.statement
 import errors
+import callable
+import function
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tokens
 import token
@@ -22,7 +25,23 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
     def __init__(self) -> None:
         super().__init__()
-        self.env = environment.Environment()
+        self.globals = environment.Environment()
+        self.env = self.globals
+
+        class Clock(callable.Callable):
+            def call(self, interpreter: Interpreter, args: list) -> object:
+                return time.time()
+            def __str__(self) -> str:
+                return "<clock fn>"
+        self.globals.define("clock", Clock())
+
+        class SaySoffiaIsHot(callable.Callable):
+            def call(self, interpreter: Interpreter, args: list) -> object:
+                print("Soffia is hot!")
+                return None
+            def __str__(self) -> str:
+                return "<soffia is hot fn>"
+        self.globals.define("soffia is hot", SaySoffiaIsHot())
 
     def interpret(self, statements: list) -> object:
         try:
@@ -89,6 +108,19 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
         return None
     
+    def visit_call(self, call: trees.expr.Call) -> object:
+        callee = self.evaluate(call.callee)
+
+        args = []
+        for arg in call.args:
+            args.append(self.evaluate(arg))
+
+        if not issubclass(callee.__class__, callable.Callable):
+            raise errors.InterpreterError(call.paren, "Can only call functions and classes")
+        if len(args) != callee.arity:
+            raise errors.InterpreterError(call.paren, f"Expected {callee.arity} arguments but got {len(args)}")
+        return callee.call(self, args)
+    
     def visit_logical(self, logical: object) -> object:
         left = self.evaluate(logical.left)
 
@@ -117,6 +149,10 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         if set.initializer != None:
             value = self.evaluate(set.initializer)
         self.env.define(set.name.lexeme, value)
+        return None
+    
+    def visit_function(self, func: trees.statement.Function) -> object:
+        self.env.define(func.name.lexeme, function.Function_(func))
         return None
     
     def visit_variable(self, variable: trees.expr.Variable) -> object:

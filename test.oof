@@ -1,9 +1,6 @@
-set x = 0;
-set y = 1;
 
-for (set i = 0; i < 20; i = i + 1) {
-    set n = x + y;
-    x = y;
-    y = n;
-    output n;
+fun test(name) {
+    output "Hello " + name + "!";
 }
+
+test("Devin");
