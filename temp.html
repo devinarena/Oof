@@ -1,0 +1,24 @@
+<html>
+    <body>
+        <canvas id="canvas" width="368" height="720"></canvas>
+        <script type="text/javascript">
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+            // objective here is to generate a night sky
+            // with a starry background
+            // and a random number of stars
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, 368, 720);
+            ctx.fillStyle = "white";
+            for (let i = 0; i < 35; i++) {
+                ctx.fillRect(Math.random() * 368, Math.random() * 720, 3, 3);
+            }
+            for (let i = 0; i < 50; i++) {
+                ctx.fillRect(Math.random() * 368, Math.random() * 720, 2, 2);
+            }
+            for (let i = 0; i < 150; i++) {
+                ctx.fillRect(Math.random() * 368, Math.random() * 720, 1, 1);
+            }
+        </script>
+    </body>
+</html>

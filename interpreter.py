@@ -12,11 +12,13 @@ import time
 
 import oof
 import environment
+import oofinstance
 import trees.expr
 import trees.statement
 import errors
 import callable
-import function
+import ooffunction
+import oofclass
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tokens
 import token
@@ -25,6 +27,7 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
     def __init__(self) -> None:
         super().__init__()
+        self.locals = {}
         self.globals = environment.Environment()
         self.env = self.globals
 
@@ -47,6 +50,14 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     
     def visit_grouping(self, grouping: trees.expr.Grouping) -> object:
         return self.evaluate(grouping.expression)
+    
+    def visit_set_(self, set: trees.expr.Set_) -> object:
+        obj = self.evaluate(set.object)
+        if type(obj) is not oofinstance.OofInstance:
+            raise errors.InterpreterError(set.name, f"Object '{obj}' does not have property '{set.name.lexeme}'")
+        value = self.evaluate(set.value)
+        obj.set(set.name, value)
+        return value
     
     def visit_unary(self, unary: object) -> object:
         right = self.evaluate(unary.right)
@@ -109,10 +120,16 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
         if not issubclass(callee.__class__, callable.Callable):
             raise errors.InterpreterError(call.paren, "Can only call functions and classes")
-        if len(args) != callee.arity:
-            raise errors.InterpreterError(call.paren, f"Expected {callee.arity} arguments but got {len(args)}")
+        if len(args) != callee.arity():
+            raise errors.InterpreterError(call.paren, f"Expected {callee.arity()} arguments but got {len(args)}")
         return callee.call(self, args)
     
+    def visit_get(self, get: trees.expr.Get) -> object:
+        obj = self.evaluate(get.object)
+        if type(obj) is not oofinstance.OofInstance:
+            raise errors.InterpreterError(get.name, f"Object '{obj}' does not have property '{get.name.lexeme}'")
+        return obj.get(get.name)
+
     def visit_logical(self, logical: object) -> object:
         left = self.evaluate(logical.left)
 
@@ -127,6 +144,20 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
 
     def visit_block(self, block: trees.statement.Block) -> object:
         self.execute_block(block.statements, environment.Environment(self.env))
+
+    def visit_class_(self, class_: trees.statement.Class_) -> object:
+        self.env.define(class_.name.lexeme, None)
+
+        methods = {}
+        for method in class_.methods:
+            fun = ooffunction.OofFunction(method, self.env, method.name.lexeme == "init")
+            methods[method.name.lexeme] = fun
+
+        self.env.assign(class_.name, oofclass.OofClass(class_.name.lexeme, methods))
+        return None
+    
+    def visit_this(self, this: trees.expr.This) -> object:
+        return self.lookup_variable(this.keyword, this)
     
     def visit_expression(self, expression: trees.statement.Expression) -> object:
         return self.evaluate(expression.expression)
@@ -144,16 +175,22 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         return None
     
     def visit_function(self, func: trees.statement.Function) -> object:
-        func_ = function.Function_(func, self.env)
+        func_ = ooffunction.OofFunction(func, self.env, False)
         self.env.define(func.name.lexeme, func_)
         return None
     
     def visit_variable(self, variable: trees.expr.Variable) -> object:
-        return self.env.get(variable.name)
+        return self.lookup_variable(variable.name, variable)
     
     def visit_assign(self, assign: trees.expr.Assign) -> object:
         value = self.evaluate(assign.value)
-        self.env.assign(assign.name, value)
+
+        distance = self.locals.get(assign.name)
+        if distance:
+            self.env.assign_at(distance, assign.name, value)
+        else:
+            self.globals.assign(assign.name, value)
+        
         return value
     
     def visit_if_(self, iff: trees.statement.If_) -> object:
@@ -186,6 +223,14 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
                 self.execute(statement)
         finally:
             self.env = previous
+    
+    def lookup_variable(self, name: token.Token, expr: trees.expr.Expr) -> object:
+        distance = self.locals.get(expr)
+
+        if distance == None:
+            return self.globals.get(name)
+        else:
+            return self.env.get_at(distance, name.lexeme)
     
     def is_truthy(self, value: object) -> bool:
         if value == None:
@@ -235,3 +280,5 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         
         return str(obj)
         
+    def resolve(self, expr: trees.expr.Expr, depth: int) -> object:
+        self.locals[expr] = depth

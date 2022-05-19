@@ -7,6 +7,8 @@ class Statement:
    class Visitor:
       def visit_block(self, block: object):
           pass
+      def visit_class_(self, class_: object):
+          pass
       def visit_expression(self, expression: object):
           pass
       def visit_function(self, function: object):
@@ -30,6 +32,14 @@ class Block(Statement):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_block(self)
+
+class Class_(Statement):
+    def __init__(self, name, methods):
+        self.name = name
+        self.methods = methods
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_class_(self)
 
 class Expression(Statement):
     def __init__(self, expression):

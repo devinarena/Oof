@@ -22,6 +22,9 @@ class Environment:
             return
         
         raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
+    
+    def assign_at(self, distance: int, name: token.Token, value: object) -> None:
+        self.ancestor(distance).values[name.lexeme] = value
 
     def get(self, name: token.Token) -> None:
         if name.lexeme in self.values:
@@ -31,3 +34,12 @@ class Environment:
             return self.enclosing.get(name)
         
         raise errors.InterpreterError(name, "Undefined variable '" + name.lexeme + "'")
+    
+    def get_at(self, distance: int, name: str) -> object:
+        return self.ancestor(distance).values.get(name)
+    
+    def ancestor(self, distance: int) -> object:
+        env = self
+        for _ in range(distance):
+            env = env.enclosing
+        return env

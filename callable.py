@@ -3,10 +3,13 @@ import interpreter
 
 class Callable:
     def __init__(self):
-        self.arity = 0
+        pass
 
     def call(self, interpreter, arguments: list) -> object:
         pass
+
+    def arity() -> int:
+        return 0
     
     def __str__(self) -> str:
         return self.__class__.__name__

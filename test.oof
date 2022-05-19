@@ -1,6 +1,12 @@
 
-fun test(name) {
-    ret name + " is cool.";
+class Test {
+    fun init() {
+        output "a";
+    }
+
+    fun lol() {
+        output "b";
+    }
 }
 
-output test("Devin");
+set test = Test();

@@ -51,15 +51,19 @@ if __name__ == "__main__":
         "Assign       : name, value",
         "Binary       : left, operator, right",
         "Call         : callee, paren, args",
+        "Get          : object, name",
         "Grouping     : expression",
         "Literal      : value",
         "Logical      : left, operator, right",
+        "Set_         : object, name, value",
+        "This         : keyword",
         "Unary        : operator, right",
         "Variable     : name",
     ]) 
     
     define_ast(sys.argv[1], "statement", [
         "Block        : statements",
+        "Class_       : name, methods",
         "Expression   : expression",
         "Function     : name, params, body",
         "If_          : condition, then_branch, else_branch",

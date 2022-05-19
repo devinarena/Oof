@@ -6,9 +6,6 @@
 # Since      : 5/3/2022
 ########################################################################################
 
-from http.client import FORBIDDEN
-
-
 iota_c = 0
 
 def iota(reset=False) -> int:
@@ -85,3 +82,13 @@ keywords = {
     "set": SET,
     "while": WHILE
 }
+
+# FUNCTION TYPES
+FTYPE_NONE = iota(True)
+FTYPE_FUNCTION = iota()
+FTYPE_METHOD = iota()
+FTYPE_CONSTRUCTOR = iota()
+
+# CLASS TYPES
+CTYPE_NONE = iota(True)
+CTYPE_CLASS = iota()

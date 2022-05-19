@@ -11,6 +11,7 @@ import sys
 import lexer
 import parser
 import interpreter
+import resolver
 
 import token
 import tokens
@@ -40,6 +41,9 @@ def run(source: str) -> None:
 
     if ERROR:
         return
+
+    rslv = resolver.Resolver(intr)
+    rslv.resolve(stmnts)
     
     intr.interpret(stmnts)
 

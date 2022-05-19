@@ -11,11 +11,17 @@ class Expr:
           pass
       def visit_call(self, call: object):
           pass
+      def visit_get(self, get: object):
+          pass
       def visit_grouping(self, grouping: object):
           pass
       def visit_literal(self, literal: object):
           pass
       def visit_logical(self, logical: object):
+          pass
+      def visit_set_(self, set_: object):
+          pass
+      def visit_this(self, this: object):
           pass
       def visit_unary(self, unary: object):
           pass
@@ -50,6 +56,14 @@ class Call(Expr):
     def accept(self, visitor: object) -> object:
         return visitor.visit_call(self)
 
+class Get(Expr):
+    def __init__(self, object, name):
+        self.object = object
+        self.name = name
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_get(self)
+
 class Grouping(Expr):
     def __init__(self, expression):
         self.expression = expression
@@ -72,6 +86,22 @@ class Logical(Expr):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_logical(self)
+
+class Set_(Expr):
+    def __init__(self, object, name, value):
+        self.object = object
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_set_(self)
+
+class This(Expr):
+    def __init__(self, keyword):
+        self.keyword = keyword
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_this(self)
 
 class Unary(Expr):
     def __init__(self, operator, right):

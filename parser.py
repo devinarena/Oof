@@ -29,6 +29,8 @@ class Parser:
     
     def declaration(self) -> trees.statement.Statement:
         try:
+            if self.match([tokens.CLASS]):
+                return self.class_declaration()
             if self.match([tokens.FUN]):
                 return self.function("function")
             if self.match([tokens.SET]):
@@ -38,6 +40,19 @@ class Parser:
         except errors.ParseError as e:
             self.synchronize()
             return None
+    
+    def class_declaration(self) -> trees.statement.Statement:
+        name = self.consume([tokens.IDENTIFIER], "Expect class name.")
+        self.consume([tokens.LEFT_BRACE], "Expect '{' after class name.")
+
+        methods = []
+        while not self.check([tokens.RIGHT_BRACE]) and not self.at_end():
+            self.consume([tokens.FUN], "Expect 'fun' before method definition.")
+            methods.append(self.function("method"))
+        
+        self.consume([tokens.RIGHT_BRACE], "Expect '}' after class body.")
+
+        return trees.statement.Class_(name, methods)
         
     def function(self, kind) -> trees.statement.Statement:
         name = self.consume([tokens.IDENTIFIER], f"Expect {kind} name.")
@@ -182,6 +197,8 @@ class Parser:
 
             if type(expr) is trees.expr.Variable:
                 return trees.expr.Assign(expr.name, value)
+            elif type(expr) is trees.expr.Get:
+                return trees.expr.Set_(expr.object, expr.name, value)
             
             raise self.error(operator, "Invalid assignment target.")
 
@@ -260,6 +277,9 @@ class Parser:
         while True:
             if self.match([tokens.LEFT_PAREN]):
                 expr = self.finish_call(expr)
+            elif self.match([tokens.DOT]):
+                name = self.consume([tokens.IDENTIFIER], "Expect property name after '.'.")
+                expr = trees.expr.Get(expr, name)
             else:
                 break
         
@@ -283,18 +303,20 @@ class Parser:
     def primary(self) -> trees.expr.Expr:
         if self.match([tokens.FALSE]):
             return trees.expr.Literal(False)
-        if self.match([tokens.TRUE]):
+        elif self.match([tokens.TRUE]):
             return trees.expr.Literal(True)
-        if self.match([tokens.NULL]):
+        elif self.match([tokens.NULL]):
             return trees.expr.Literal(None)
-        if self.match([tokens.NUMBER, tokens.STRING]):
+        elif self.match([tokens.NUMBER, tokens.STRING]):
             return trees.expr.Literal(self.previous().literal)
         elif self.match([tokens.IDENTIFIER]):
             return trees.expr.Variable(self.previous())
-        if self.match([tokens.LEFT_PAREN]):
+        elif self.match([tokens.LEFT_PAREN]):
             expr = self.expression()
             self.consume([tokens.RIGHT_PAREN], "Expect ')' after expression.")
             return trees.expr.Grouping(expr)
+        elif self.match([tokens.THIS]):
+            return trees.expr.This(self.previous()) 
         raise self.error(self.peek(), f"Unexpected token {self.peek()}")
     
     def match(self, expected: list) -> bool:
