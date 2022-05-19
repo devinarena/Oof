@@ -1,0 +1,18 @@
+class Square {
+    fun init(length) {
+        this.length = length;
+    }
+
+    fun area() {
+        ret this.length * this.length;
+    }
+
+    fun perimeter() {
+        ret this.length * 4;
+    }
+}
+
+set s = Square(5);
+output s.length; // 5
+output s.area(); // 25
+output s.perimeter(); // 20

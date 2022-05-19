@@ -1,0 +1,36 @@
+class Animal {
+    fun init() {
+
+    }
+
+    fun speak() {
+        output "";
+    }
+}
+
+class Dog << Animal {
+    fun speak() {
+        output "woof";
+    }
+}
+
+class Cat << Animal {
+    fun speak() {
+        output "meow";
+    }
+}
+
+class CatDog << Dog {
+    fun speak() {
+        output "meow";
+        super.speak();
+    }
+}
+
+set dog = Dog();
+set cat = Cat();
+set catdog = CatDog();
+
+dog.speak(); // "woof"
+cat.speak(); // "meow"
+catdog.speak(); // "meow" "woof"
