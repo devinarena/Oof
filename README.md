@@ -136,5 +136,5 @@ Oof has 1 standard library function and its clock(). I did not want to add any f
 ```
 output clock(); // outputs Unix time in seconds
 ```
-### License and Contribute
+## License and Contribute
 MIT. You are free to do with this code what you wish (though it is quite messy). If for whatever reason you'd like to improve oof, feel free to contribute.
