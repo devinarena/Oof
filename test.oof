@@ -5,7 +5,7 @@ class B {
     }
 }
 
-class A {
+class A << B {
     fun init() {
         output "a";
     }
