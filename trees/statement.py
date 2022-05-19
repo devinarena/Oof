@@ -34,8 +34,9 @@ class Block(Statement):
         return visitor.visit_block(self)
 
 class Class_(Statement):
-    def __init__(self, name, methods):
+    def __init__(self, name, superclass, methods):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def accept(self, visitor: object) -> object:

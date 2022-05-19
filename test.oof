@@ -1,12 +1,19 @@
 
-class Test {
+class B {
+    fun lol() {
+        ret this;
+    }
+}
+
+class A {
     fun init() {
         output "a";
     }
 
-    fun lol() {
-        output "b";
+    fun test() {
+        ret super.lol();
     }
 }
 
-set test = Test();
+set test = A();
+output test.test();

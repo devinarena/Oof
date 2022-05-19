@@ -21,6 +21,8 @@ class Expr:
           pass
       def visit_set_(self, set_: object):
           pass
+      def visit_super(self, super: object):
+          pass
       def visit_this(self, this: object):
           pass
       def visit_unary(self, unary: object):
@@ -95,6 +97,14 @@ class Set_(Expr):
 
     def accept(self, visitor: object) -> object:
         return visitor.visit_set_(self)
+
+class Super(Expr):
+    def __init__(self, keyword, method):
+        self.keyword = keyword
+        self.method = method
+
+    def accept(self, visitor: object) -> object:
+        return visitor.visit_super(self)
 
 class This(Expr):
     def __init__(self, keyword):

@@ -78,7 +78,12 @@ class Lexer:
         elif c == "=":
             self.add_token(tokens.EQUAL_EQUAL if self.match("=") else tokens.EQUAL, None)
         elif c == "<":
-            self.add_token(tokens.LESS_EQUAL if self.match("=") else tokens.LESS, None)
+            if self.match("="):
+                self.add_token(tokens.LESS_EQUAL, None)
+            elif self.match("<"):
+                self.add_token(tokens.EXTENDS, None)
+            else:
+                self.add_token(tokens.LESS, None)
         elif c == ">":
             self.add_token(tokens.GREATER_EQUAL if self.match("=") else tokens.GREATER, None)
         # Literals

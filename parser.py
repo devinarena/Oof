@@ -43,6 +43,12 @@ class Parser:
     
     def class_declaration(self) -> trees.statement.Statement:
         name = self.consume([tokens.IDENTIFIER], "Expect class name.")
+        
+        superclass = None
+        if self.match([tokens.EXTENDS]):
+            self.consume([tokens.IDENTIFIER], "Expect superclass name.")
+            superclass = trees.expr.Variable(self.previous())
+
         self.consume([tokens.LEFT_BRACE], "Expect '{' after class name.")
 
         methods = []
@@ -52,7 +58,7 @@ class Parser:
         
         self.consume([tokens.RIGHT_BRACE], "Expect '}' after class body.")
 
-        return trees.statement.Class_(name, methods)
+        return trees.statement.Class_(name, superclass, methods)
         
     def function(self, kind) -> trees.statement.Statement:
         name = self.consume([tokens.IDENTIFIER], f"Expect {kind} name.")
@@ -315,6 +321,11 @@ class Parser:
             expr = self.expression()
             self.consume([tokens.RIGHT_PAREN], "Expect ')' after expression.")
             return trees.expr.Grouping(expr)
+        elif self.match([tokens.SUPER]):
+            keyword = self.previous()
+            self.consume([tokens.DOT], "Expect '.' after 'super'.")
+            method = self.consume([tokens.IDENTIFIER], "Expect superclass method name.")
+            return trees.expr.Super(keyword, method)
         elif self.match([tokens.THIS]):
             return trees.expr.This(self.previous()) 
         raise self.error(self.peek(), f"Unexpected token {self.peek()}")

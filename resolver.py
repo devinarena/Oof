@@ -37,6 +37,15 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         self.declare(class_.name)
         self.define(class_.name)
 
+        if class_.superclass:
+            self.current_class = tokens.CTYPE_SUBCLASS
+            if class_.superclass.name.lexeme == class_.name.lexeme:
+                oof.error(class_.name, "Classes can't inherit from themselves")
+            self.resolve_(class_.superclass)
+
+            self.begin_scope()
+            self.scopes[-1]["super"] = True
+
         self.begin_scope()
         self.scopes[-1]["this"] = True
 
@@ -48,6 +57,9 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         
         self.end_scope()
 
+        if class_.superclass:
+            self.end_scope()
+
         self.current_class = enclosing_class
 
         return None
@@ -57,6 +69,15 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         if set.initializer:
             self.resolve_(set.initializer)
         self.define(set.name)
+        return None
+    
+    def visit_super(self, super: trees.expr.Super) -> object:
+        if self.current_class == tokens.CTYPE_NONE:
+            oof.error(super.keyword, "Cannot use 'super' outside of a class")
+        elif self.current_class != tokens.CTYPE_SUBCLASS:
+            oof.error(super.keyword, "Cannot use 'super' in a class with no superclass")
+        
+        self.resolve_local(super, super.keyword)
         return None
     
     def visit_variable(self, variable: trees.expr.Variable) -> object:

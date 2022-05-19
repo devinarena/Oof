@@ -56,6 +56,7 @@ if __name__ == "__main__":
         "Literal      : value",
         "Logical      : left, operator, right",
         "Set_         : object, name, value",
+        "Super        : keyword, method",
         "This         : keyword",
         "Unary        : operator, right",
         "Variable     : name",
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     
     define_ast(sys.argv[1], "statement", [
         "Block        : statements",
-        "Class_       : name, methods",
+        "Class_       : name, superclass, methods",
         "Expression   : expression",
         "Function     : name, params, body",
         "If_          : condition, then_branch, else_branch",

@@ -38,6 +38,7 @@ GREATER = iota()
 GREATER_EQUAL = iota()
 LESS = iota()
 LESS_EQUAL = iota()
+EXTENDS = iota()
 
 # LITERALS
 IDENTIFIER = iota()
@@ -92,3 +93,4 @@ FTYPE_CONSTRUCTOR = iota()
 # CLASS TYPES
 CTYPE_NONE = iota(True)
 CTYPE_CLASS = iota()
+CTYPE_SUBCLASS = iota()

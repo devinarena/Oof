@@ -11,8 +11,9 @@ import oofinstance
 
 class OofClass(callable.Callable):
 
-    def __init__(self, name, methods):
+    def __init__(self, name, superclass, methods):
         self.name = name
+        self.superclass= superclass
         self.methods = methods
     
     def call(self, interpreter, arguments: list) -> object:
@@ -25,6 +26,9 @@ class OofClass(callable.Callable):
     def find_method(self, name):
         if name in self.methods:
             return self.methods[name]
+        
+        if self.superclass:
+            return self.superclass.find_method(name)
         
         return None
     

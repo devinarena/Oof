@@ -146,14 +146,27 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         self.execute_block(block.statements, environment.Environment(self.env))
 
     def visit_class_(self, class_: trees.statement.Class_) -> object:
+        superclass = None
+        if class_.superclass:
+            superclass = self.evaluate(class_.superclass)
+            if type(superclass) is not oofclass.OofClass:
+                raise errors.InterpreterError(class_.name, f"Superclass must be a class")
+
         self.env.define(class_.name.lexeme, None)
+
+        if class_.superclass:
+            self.env = environment.Environment(self.env)
+            self.env.define("super", superclass)
 
         methods = {}
         for method in class_.methods:
             fun = ooffunction.OofFunction(method, self.env, method.name.lexeme == "init")
             methods[method.name.lexeme] = fun
+        
+        if class_.superclass:
+            self.env = self.env.enclosing
 
-        self.env.assign(class_.name, oofclass.OofClass(class_.name.lexeme, methods))
+        self.env.assign(class_.name, oofclass.OofClass(class_.name.lexeme, superclass, methods))
         return None
     
     def visit_this(self, this: trees.expr.This) -> object:
@@ -166,6 +179,17 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         val = self.evaluate(output.output)
         print(self.stringify(val))
         return None
+    
+    def visit_super(self, super_: trees.expr.Super) -> object:
+        distance = self.locals.get(super_, None)
+        if distance is None:
+            raise errors.InterpreterError(super_.keyword, "Cannot use 'super' outside of a class")
+        superclass = self.env.get_at(distance, "super")
+        object = self.env.get_at(distance - 1, "this")
+        method = superclass.find_method(super_.method.lexeme)
+        if method is None:
+            raise errors.InterpreterError(super_.method, f"Undefined property '{super_.method.lexeme}'")
+        return method.bind(object)
     
     def visit_set(self, set: trees.statement.Set) -> object:
         value = None
