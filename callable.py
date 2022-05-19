@@ -8,7 +8,7 @@ class Callable:
     def call(self, interpreter, arguments: list) -> object:
         pass
 
-    def arity() -> int:
+    def arity(self) -> int:
         return 0
     
     def __str__(self) -> str:

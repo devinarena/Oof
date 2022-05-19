@@ -157,7 +157,7 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         if class_.superclass:
             self.env = environment.Environment(self.env)
             self.env.define("super", superclass)
-
+        
         methods = {}
         for method in class_.methods:
             fun = ooffunction.OofFunction(method, self.env, method.name.lexeme == "init")
@@ -166,7 +166,7 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         if class_.superclass:
             self.env = self.env.enclosing
 
-        self.env.assign(class_.name, oofclass.OofClass(class_.name.lexeme, superclass, methods))
+        self.env.assign(class_.name, oofclass.OofClass(class_.name.lexeme, superclass, methods, class_.fields))
         return None
     
     def visit_this(self, this: trees.expr.This) -> object:
@@ -175,7 +175,7 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     def visit_expression(self, expression: trees.statement.Expression) -> object:
         return self.evaluate(expression.expression)
 
-    def visit_output(self, output: trees.expr.Expr) -> object:
+    def visit_output(self, output: trees.statement.Output) -> object:
         val = self.evaluate(output.output)
         print(self.stringify(val))
         return None
@@ -209,8 +209,8 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     def visit_assign(self, assign: trees.expr.Assign) -> object:
         value = self.evaluate(assign.value)
 
-        distance = self.locals.get(assign.name)
-        if distance:
+        distance = self.locals.get(assign)
+        if distance != None:
             self.env.assign_at(distance, assign.name, value)
         else:
             self.globals.assign(assign.name, value)
@@ -251,10 +251,10 @@ class Interpreter(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     def lookup_variable(self, name: token.Token, expr: trees.expr.Expr) -> object:
         distance = self.locals.get(expr)
 
-        if distance == None:
-            return self.globals.get(name)
-        else:
+        if distance != None:
             return self.env.get_at(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
     
     def is_truthy(self, value: object) -> bool:
         if value == None:

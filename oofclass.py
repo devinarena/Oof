@@ -11,16 +11,22 @@ import oofinstance
 
 class OofClass(callable.Callable):
 
-    def __init__(self, name, superclass, methods):
+    def __init__(self, name, superclass, methods, fields):
         self.name = name
         self.superclass= superclass
         self.methods = methods
+        self.fields = fields
     
     def call(self, interpreter, arguments: list) -> object:
         instance = oofinstance.OofInstance(self)
         initializer = self.find_method("init")
         if initializer:
             initializer.bind(instance).call(interpreter, arguments)
+        if self.superclass:
+            for field in self.superclass.fields:
+                instance.set(field.name, interpreter.evaluate(field.initializer))
+        for field in self.fields:
+            instance.set(field.name, interpreter.evaluate(field.initializer))
         return instance
     
     def find_method(self, name):

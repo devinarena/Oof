@@ -64,7 +64,7 @@ if __name__ == "__main__":
     
     define_ast(sys.argv[1], "statement", [
         "Block        : statements",
-        "Class_       : name, superclass, methods",
+        "Class_       : name, superclass, methods, fields",
         "Expression   : expression",
         "Function     : name, params, body",
         "If_          : condition, then_branch, else_branch",

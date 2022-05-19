@@ -51,14 +51,18 @@ class Parser:
 
         self.consume([tokens.LEFT_BRACE], "Expect '{' after class name.")
 
+        fields = []
         methods = []
         while not self.check([tokens.RIGHT_BRACE]) and not self.at_end():
-            self.consume([tokens.FUN], "Expect 'fun' before method definition.")
-            methods.append(self.function("method"))
+            if self.match([tokens.SET]):
+                fields.append(self.set_declaration())
+            else:
+                self.consume([tokens.FUN], "Expect 'fun' before method definition.")
+                methods.append(self.function("method"))
         
         self.consume([tokens.RIGHT_BRACE], "Expect '}' after class body.")
 
-        return trees.statement.Class_(name, superclass, methods)
+        return trees.statement.Class_(name, superclass, methods, fields)
         
     def function(self, kind) -> trees.statement.Statement:
         name = self.consume([tokens.IDENTIFIER], f"Expect {kind} name.")
@@ -134,7 +138,7 @@ class Parser:
             body = trees.statement.Block([body, trees.statement.Expression(increment)])
         
         if not condition:
-            condition = False
+            condition = trees.expr.Literal(True)
         body = trees.statement.While_(condition, body)
 
         if initializer:

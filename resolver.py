@@ -6,9 +6,6 @@
 # Since      : 5/7/2022
 ########################################################################################
 
-from socket import SocketIO
-
-from idna import check_label
 import trees.expr
 import trees.statement
 import token
@@ -95,7 +92,7 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         return None
     
     def visit_assign(self, assign: trees.expr.Assign) -> object:
-        self.resolve__(assign.value)
+        self.resolve_(assign.value)
         self.resolve_local(assign, assign.name)
         return None
     
@@ -157,9 +154,6 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     def resolve_(self, statement) -> None:
         statement.accept(self)
     
-    def resolve__(self, expr) -> None:
-        expr.accept(self)
-    
     def begin_scope(self) -> None:
         self.scopes.append({})
     
@@ -170,7 +164,7 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
         self.resolve_(expression.expression)
     
     def visit_if_(self, if_: trees.statement.If_) -> object:
-        self.resolve(if_.condition)
+        self.resolve_(if_.condition)
         self.resolve_(if_.then_branch)
         if if_.else_branch:
             self.resolve_(if_.else_branch)
@@ -194,7 +188,7 @@ class Resolver(trees.expr.Expr.Visitor, trees.statement.Statement.Visitor):
     
     def visit_while_(self, while_: trees.statement.While_) -> object:
         self.resolve_(while_.condition)
-        self.resolve(while_.body)
+        self.resolve_(while_.body)
         return None
     
     def visit_binary(self, binary: trees.expr.Binary) -> object:
